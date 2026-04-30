@@ -9,29 +9,30 @@ jobs:
 
     steps:
 
-    - name: Checkout code
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: "3.11"
 
-    - name: Install dependencies
+    - name: Install System Packages
       run: |
         sudo apt update
-
         sudo apt install -y \
-        zip unzip git openjdk-17-jdk \
-        python3-pip autoconf libtool \
-        pkg-config zlib1g-dev \
+        git zip unzip openjdk-17-jdk \
+        python3-pip autoconf automake \
+        libtool pkg-config zlib1g-dev \
         libncurses5-dev libncursesw5-dev \
         cmake libffi-dev libssl-dev
 
+    - name: Install Python Packages
+      run: |
         pip install --upgrade pip
         pip install buildozer cython
 
-    - name: Install Android SDK
+    - name: Setup Android SDK
       run: |
         mkdir -p $HOME/android-sdk/cmdline-tools
         cd $HOME/android-sdk/cmdline-tools
@@ -42,17 +43,21 @@ jobs:
 
         mv cmdline-tools latest
 
-        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+        export ANDROID_HOME=$HOME/android-sdk
+        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
 
-        $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager \
+        yes | sdkmanager --licenses
+
+        sdkmanager \
         "platform-tools" \
         "platforms;android-33" \
         "build-tools;33.0.2"
 
-    - name: Set Android Environment
+    - name: Set Environment
       run: |
         echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
         echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+        echo "$HOME/android-sdk/build-tools/33.0.2" >> $GITHUB_PATH
 
     - name: Build APK
       run: |
