@@ -1,0 +1,6 @@
+kivy
+yfinance
+pandas
+ta
+colorama
+pyttsx3
